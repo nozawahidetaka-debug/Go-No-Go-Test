@@ -1,0 +1,112 @@
+:root {
+  /* Color Palette - Premium Dark Mode */
+  --bg-primary: #0f0c29;
+  --bg-secondary: #302b63;
+  --bg-tertiary: #24243e;
+
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0c0;
+
+  --accent-go: #00ff87;
+  /* Neon Green */
+  --accent-nogo: #ff005c;
+  /* Neon Red/Pink */
+  --accent-ui: #6b4cff;
+  /* Primary UI action color */
+
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  /* Typography */
+  --font-main: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-mono: 'Space Mono', 'Fira Code', monospace;
+
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 4rem;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-medium: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  /* Allow vertical scroll */
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  /* Allow growth */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  /* Add some padding for scroll space */
+}
+
+/* Utilities & Components */
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-sm);
+  background: -webkit-linear-gradient(0deg, #fff, var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: var(--accent-ui);
+  color: #fff;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(107, 76, 255, 0.4);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(107, 76, 255, 0.6);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: var(--spacing-md);
+  box-shadow: var(--glass-shadow);
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+}
