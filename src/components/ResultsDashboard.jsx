@@ -12,17 +12,19 @@ const ResultsDashboard = ({ results, userInfo, onRestart }) => {
     const goTrials = results.filter(r => r.type === 'GO' && r.correct && r.reactionTime);
     const reactionTimes = goTrials.map(r => r.reactionTime).sort((a, b) => a - b);
 
-    const avgReactionTime = reactionTimes.length > 0
-        ? Math.round(reactionTimes.reduce((acc, curr) => acc + curr, 0) / reactionTimes.length)
+    const medianReactionTime = reactionTimes.length > 0
+        ? (reactionTimes.length % 2 === 0
+            ? Math.round((reactionTimes[reactionTimes.length / 2 - 1] + reactionTimes[reactionTimes.length / 2]) / 2)
+            : reactionTimes[Math.floor(reactionTimes.length / 2)])
         : 0;
 
     // Demographic Evaluation
     const evaluation = useMemo(() => {
-        if (avgReactionTime > 0 && userInfo) {
-            return evaluatePerformance(userInfo.age, userInfo.sex, avgReactionTime);
+        if (medianReactionTime > 0 && userInfo) {
+            return evaluatePerformance(userInfo.age, userInfo.sex, medianReactionTime);
         }
         return null;
-    }, [avgReactionTime, userInfo]);
+    }, [medianReactionTime, userInfo]);
 
     // Calculate Box Plot Data
     let boxPlotData = [];
@@ -115,8 +117,8 @@ const ResultsDashboard = ({ results, userInfo, onRestart }) => {
                     <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent-ui)' }}>{accuracy}%</div>
                 </div>
                 <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Reaction</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent-go)' }}>{avgReactionTime}ms</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Median Reaction</div>
+                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent-go)' }}>{medianReactionTime}ms</div>
                 </div>
             </div>
 
