@@ -33,14 +33,16 @@ const GameScreen = ({ onEnd }) => {
         NOGO: { type: 'NOGO', color: 'var(--accent-nogo)', shape: '10%' } // Square
     };
 
-    const finishGame = useCallback(() => {
-        onEnd(results);
-    }, [onEnd, results]);
+    // Watch for game completion
+    useEffect(() => {
+        if (results.length >= TOTAL_ROUNDS) {
+            onEnd(results);
+        }
+    }, [results, onEnd]);
 
     const nextRound = useCallback(() => {
         const round = currentRoundRef.current;
         if (round >= TOTAL_ROUNDS) {
-            finishGame();
             return;
         }
 
@@ -58,12 +60,19 @@ const GameScreen = ({ onEnd }) => {
             setStimulusType(type);
             setIsStimulusVisible(true);
             setWaitingForInput(true);
-            stimulusTimeRef.current = performance.now();
+            // Time recorded in useEffect after render
             setCurrentRound(p => p + 1);
 
         }, delay);
 
-    }, [finishGame]); // Minimal dependencies
+    }, []); // Minimal dependencies
+
+    // Measure time exactly when stimulus renders
+    useEffect(() => {
+        if (isStimulusVisible) {
+            stimulusTimeRef.current = performance.now();
+        }
+    }, [isStimulusVisible]);
 
     const handleInput = useCallback(() => {
         if (!waitingForInputRef.current) return;
@@ -149,8 +158,7 @@ const GameScreen = ({ onEnd }) => {
                     height: '200px',
                     borderRadius: stimulusType?.shape || '50%',
                     backgroundColor: isStimulusVisible ? stimulusType.color : 'transparent',
-                    transition: 'transform 0.1s',
-                    transform: isStimulusVisible ? 'scale(1)' : 'scale(0.8)',
+
                     boxShadow: isStimulusVisible ? `0 0 50px ${stimulusType.color}` : 'none',
                     cursor: 'pointer'
                 }}

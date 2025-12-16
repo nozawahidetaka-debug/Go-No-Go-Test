@@ -1,20 +1,19 @@
 import React, { useMemo } from 'react';
-import Chart from 'react-apexcharts';
 import { evaluatePerformance } from '../data/norms';
 
 const ResultsDashboard = ({ results, userInfo, onRestart }) => {
-    if (!results) return null;
+    if (!results) return <div>No Results Data</div>;
 
     const total = results.length;
     const correct = results.filter(r => r.correct).length;
-    const accuracy = Math.round((correct / total) * 100);
+    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-    const goTrials = results.filter(r => r.type === 'GO' && r.correct && r.reactionTime);
+    const goTrials = results.filter(r => r.type === 'GO' && r.correct && (r.reactionTime !== null && r.reactionTime !== undefined));
     const reactionTimes = goTrials.map(r => r.reactionTime).sort((a, b) => a - b);
 
     const medianReactionTime = reactionTimes.length > 0
-        ? (reactionTimes.length % 2 === 0
-            ? Math.round((reactionTimes[reactionTimes.length / 2 - 1] + reactionTimes[reactionTimes.length / 2]) / 2)
+        ? Math.round(reactionTimes.length % 2 === 0
+            ? (reactionTimes[reactionTimes.length / 2 - 1] + reactionTimes[reactionTimes.length / 2]) / 2
             : reactionTimes[Math.floor(reactionTimes.length / 2)])
         : 0;
 
@@ -25,56 +24,6 @@ const ResultsDashboard = ({ results, userInfo, onRestart }) => {
         }
         return null;
     }, [medianReactionTime, userInfo]);
-
-    // Calculate Box Plot Data
-    let boxPlotData = [];
-    if (reactionTimes.length >= 5) {
-        const min = Math.min(...reactionTimes);
-        const max = Math.max(...reactionTimes);
-        const q1 = reactionTimes[Math.floor(reactionTimes.length * 0.25)];
-        const median = reactionTimes[Math.floor(reactionTimes.length * 0.5)];
-        const q3 = reactionTimes[Math.floor(reactionTimes.length * 0.75)];
-
-        boxPlotData = [
-            {
-                x: 'Reaction Time',
-                y: [min, q1, median, q3, max].map(Math.round)
-            }
-        ];
-    }
-
-    const chartOptions = {
-        chart: {
-            type: 'boxPlot',
-            height: 350,
-            background: 'transparent',
-            toolbar: { show: false }
-        },
-        title: {
-            text: 'Reaction Time Distribution (Correct Go)',
-            align: 'left',
-            style: { color: 'var(--text-secondary)' }
-        },
-        plotOptions: {
-            boxPlot: {
-                colors: {
-                    upper: 'var(--accent-go)',
-                    lower: 'var(--accent-ui)'
-                }
-            }
-        },
-        xaxis: {
-            labels: { style: { colors: 'var(--text-secondary)' } }
-        },
-        yaxis: {
-            labels: { style: { colors: 'var(--text-secondary)' } }
-        },
-        theme: { mode: 'dark' },
-        grid: { show: false },
-        stroke: {
-            colors: ['#ffffff'] // White for max contrast
-        }
-    };
 
     const downloadCSV = () => {
         // Define CSV headers
@@ -112,13 +61,13 @@ const ResultsDashboard = ({ results, userInfo, onRestart }) => {
             <h1>Results</h1>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', margin: '2rem 0' }}>
-                <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Accuracy</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent-ui)' }}>{accuracy}%</div>
+                <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
+                    <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Accuracy</div>
+                    <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: 'var(--accent-ui)' }}>{accuracy}%</div>
                 </div>
-                <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Median Reaction</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent-go)' }}>{medianReactionTime}ms</div>
+                <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
+                    <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Median Reaction</div>
+                    <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: 'var(--accent-go)' }}>{medianReactionTime}ms</div>
                 </div>
             </div>
 
@@ -135,12 +84,6 @@ const ResultsDashboard = ({ results, userInfo, onRestart }) => {
                             {evaluation.diff > 0 ? '+' : ''}{Math.round(evaluation.diff)}ms
                         </span>
                     </div>
-                </div>
-            )}
-
-            {boxPlotData.length > 0 && (
-                <div style={{ margin: '2rem 0', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '10px' }}>
-                    <Chart options={chartOptions} series={[{ type: 'boxPlot', data: boxPlotData }]} type="boxPlot" height={350} />
                 </div>
             )}
 

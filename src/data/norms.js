@@ -1,20 +1,22 @@
-// Estimated norms based on general literature trends for simple/choice reaction tasks with inhibition.
-// Values are mean Reaction Time (ms). Standard deviation is estimated at ~40ms for calculation purposes.
+// Revised norms based on large-scale reaction time studies (e.g., Der & Deary, 2006; Woods et al., 2015).
+// Simple Reaction Time (SRT) is typically ~250ms for young adults.
+// Go/No-Go tasks involve inhibition/discrimination, adding ~50-100ms processing cost.
+// Values below represent "Simple Visual Go/No-Go" estimates: ~330ms baseline for young adults, increasing with age.
 
 export const NORMS = {
     male: {
-        '20s': { mean: 210, sd: 35 },
-        '30s': { mean: 225, sd: 40 },
-        '40s': { mean: 245, sd: 45 },
-        '50s': { mean: 265, sd: 50 },
-        '60+': { mean: 290, sd: 60 }
+        '20s': { mean: 320, sd: 45 },
+        '30s': { mean: 340, sd: 50 },
+        '40s': { mean: 370, sd: 55 },
+        '50s': { mean: 400, sd: 60 },
+        '60+': { mean: 440, sd: 70 }
     },
     female: {
-        '20s': { mean: 220, sd: 35 }, // Slightly adjusted based on some literature suggesting small diffs
-        '30s': { mean: 235, sd: 40 },
-        '40s': { mean: 255, sd: 45 },
-        '50s': { mean: 275, sd: 50 },
-        '60+': { mean: 300, sd: 60 }
+        '20s': { mean: 340, sd: 45 },
+        '30s': { mean: 360, sd: 50 },
+        '40s': { mean: 390, sd: 55 },
+        '50s': { mean: 420, sd: 60 },
+        '60+': { mean: 460, sd: 70 }
     }
 };
 
