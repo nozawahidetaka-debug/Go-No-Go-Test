@@ -4,18 +4,29 @@ import { evaluatePerformance } from '../data/norms';
 const ResultsDashboard = ({ results, userInfo, onRestart }) => {
     if (!results) return <div>No Results Data</div>;
 
-    const total = results.length;
-    const correct = results.filter(r => r.correct).length;
-    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+    // Calculate No-Go inhibition success rate
+    const nogoTrials = results.filter(r => r.type === 'NOGO');
+    const nogoSuccess = nogoTrials.filter(r => r.correct).length;
+    const inhibitionRate = nogoTrials.length > 0
+        ? Math.round((nogoSuccess / nogoTrials.length) * 100)
+        : 0;
 
+    // Calculate reaction time statistics (Go trials only)
     const goTrials = results.filter(r => r.type === 'GO' && r.correct && (r.reactionTime !== null && r.reactionTime !== undefined));
     const reactionTimes = goTrials.map(r => r.reactionTime).sort((a, b) => a - b);
 
+    // Median reaction time
     const medianReactionTime = reactionTimes.length > 0
         ? Math.round(reactionTimes.length % 2 === 0
             ? (reactionTimes[reactionTimes.length / 2 - 1] + reactionTimes[reactionTimes.length / 2]) / 2
             : reactionTimes[Math.floor(reactionTimes.length / 2)])
         : 0;
+
+    // Interquartile range (IQR) - Q1 and Q3
+    const q1Index = Math.floor(reactionTimes.length * 0.25);
+    const q3Index = Math.floor(reactionTimes.length * 0.75);
+    const q1 = reactionTimes.length > 0 ? Math.round(reactionTimes[q1Index]) : 0;
+    const q3 = reactionTimes.length > 0 ? Math.round(reactionTimes[q3Index]) : 0;
 
     // Demographic Evaluation
     const evaluation = useMemo(() => {
@@ -62,12 +73,23 @@ const ResultsDashboard = ({ results, userInfo, onRestart }) => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', margin: '2rem 0' }}>
                 <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>正確性</div>
-                    <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: 'var(--accent-ui)' }}>{accuracy}%</div>
+                    <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>反応時間</div>
+                    <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: 'var(--accent-go)' }}>
+                        {medianReactionTime}ms
+                    </div>
+                    <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                        ({q1}-{q3}ms)
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                        Go刺激への反応
+                    </div>
                 </div>
                 <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>反応時間中央値</div>
-                    <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: 'var(--accent-go)' }}>{medianReactionTime}ms</div>
+                    <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>抑制成功率</div>
+                    <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: 'var(--accent-ui)' }}>{inhibitionRate}%</div>
+                    <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                        No-Go: {nogoSuccess}/{nogoTrials.length}成功
+                    </div>
                 </div>
             </div>
 
