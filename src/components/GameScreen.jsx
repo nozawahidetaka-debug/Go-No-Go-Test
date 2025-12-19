@@ -149,7 +149,7 @@ const GameScreen = ({ onEnd }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2 style={{ position: 'absolute', top: '20px', fontSize: '1.5rem', opacity: 0.5 }}>
-                Round {currentRound} / {TOTAL_ROUNDS}
+                ラウンド {currentRound} / {TOTAL_ROUNDS}
             </h2>
 
             <div
@@ -166,11 +166,11 @@ const GameScreen = ({ onEnd }) => {
             />
 
             {!isStimulusVisible && (
-                <div style={{ marginTop: '2rem', height: '2rem', color: 'var(--text-secondary)' }}>Wait...</div>
+                <div style={{ marginTop: '2rem', height: '2rem', color: 'var(--text-secondary)' }}>待機中...</div>
             )}
 
             <div style={{ position: 'absolute', bottom: '20px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Press SPACE or Click the Shape
+                スペースキーを押すか図形をクリック
             </div>
         </div>
     );
