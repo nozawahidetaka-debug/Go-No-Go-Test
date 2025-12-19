@@ -68,9 +68,13 @@ const GameScreen = ({ onEnd }) => {
     }, []); // Minimal dependencies
 
     // Measure time exactly when stimulus renders
+    // Use requestAnimationFrame to ensure timing is captured AFTER the browser paints
     useEffect(() => {
         if (isStimulusVisible) {
-            stimulusTimeRef.current = performance.now();
+            // Wait for the next animation frame (after paint) to record the time
+            requestAnimationFrame(() => {
+                stimulusTimeRef.current = performance.now();
+            });
         }
     }, [isStimulusVisible]);
 
@@ -158,11 +162,21 @@ const GameScreen = ({ onEnd }) => {
                     height: '200px',
                     borderRadius: stimulusType?.shape || '50%',
                     backgroundColor: isStimulusVisible ? stimulusType.color : 'transparent',
-
                     boxShadow: isStimulusVisible ? `0 0 50px ${stimulusType.color}` : 'none',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    // Performance optimizations for mobile devices
+                    willChange: 'background-color, box-shadow',
+                    transform: 'translateZ(0)', // Force GPU acceleration
+                    transition: 'none' // Disable transitions for instant display
                 }}
-                onMouseDown={(e) => { e.preventDefault(); handleInput(); }} // Mouse support
+                onTouchStart={(e) => {
+                    e.preventDefault();
+                    handleInput();
+                }} // Touch support (faster on mobile)
+                onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleInput();
+                }} // Mouse support (desktop)
             />
 
             {!isStimulusVisible && (
