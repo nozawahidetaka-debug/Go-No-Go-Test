@@ -5,6 +5,27 @@ const TOTAL_ROUNDS = 20;
 const MIN_INTERVAL = 1500; // ms
 const MAX_INTERVAL = 3000; // ms
 const GO_PROBABILITY = 0.7; // 70% Go, 30% No-Go
+const NOGO_DISPLAY_TIME = 800; // ms - Time to display No-Go stimulus before moving to next round
+
+// Generate balanced sequence of Go/No-Go stimuli using Fisher-Yates shuffle
+const generateStimulusSequence = (totalRounds, goProbability) => {
+    const goCount = Math.round(totalRounds * goProbability);
+    const nogoCount = totalRounds - goCount;
+
+    // Create array with exact counts
+    const sequence = [
+        ...Array(goCount).fill('GO'),
+        ...Array(nogoCount).fill('NOGO')
+    ];
+
+    // Fisher-Yates shuffle for unbiased randomization
+    for (let i = sequence.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [sequence[i], sequence[j]] = [sequence[j], sequence[i]];
+    }
+
+    return sequence;
+};
 
 const GameScreen = ({ onEnd }) => {
     const [currentRound, setCurrentRound] = useState(0);
@@ -19,6 +40,9 @@ const GameScreen = ({ onEnd }) => {
     const currentRoundRef = useRef(currentRound);
     const stimulusTimeRef = useRef(0);
     const timeoutRef = useRef(null);
+
+    // Generate balanced stimulus sequence once at the start
+    const stimulusSequenceRef = useRef(generateStimulusSequence(TOTAL_ROUNDS, GO_PROBABILITY));
 
     // Sync state to refs
     useEffect(() => {
@@ -53,9 +77,9 @@ const GameScreen = ({ onEnd }) => {
         const delay = Math.random() * (MAX_INTERVAL - MIN_INTERVAL) + MIN_INTERVAL;
 
         timeoutRef.current = setTimeout(() => {
-            // Decide logic
-            const isGo = Math.random() < GO_PROBABILITY;
-            const type = isGo ? STIMULUS.GO : STIMULUS.NOGO;
+            // Use pre-generated balanced sequence instead of random
+            const stimulusTypeName = stimulusSequenceRef.current[round];
+            const type = stimulusTypeName === 'GO' ? STIMULUS.GO : STIMULUS.NOGO;
 
             setStimulusType(type);
             setIsStimulusVisible(true);
@@ -106,7 +130,7 @@ const GameScreen = ({ onEnd }) => {
     useEffect(() => {
         let noInputTimeout;
         if (waitingForInput && stimulusType) {
-            // Wait window
+            // Wait window - shorter for No-Go to reduce perceived delay
             noInputTimeout = setTimeout(() => {
                 if (waitingForInputRef.current) {
                     // Time expired without input
@@ -125,7 +149,7 @@ const GameScreen = ({ onEnd }) => {
                     setIsStimulusVisible(false);
                     nextRound();
                 }
-            }, 1500); // 1.5s response window
+            }, NOGO_DISPLAY_TIME); // Reduced from 1500ms to 800ms for better flow
         }
         return () => clearTimeout(noInputTimeout);
     }, [waitingForInput, stimulusType, nextRound]);
