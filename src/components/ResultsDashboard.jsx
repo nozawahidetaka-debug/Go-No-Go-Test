@@ -11,22 +11,67 @@ const ResultsDashboard = ({ results, userInfo, onRestart }) => {
         ? Math.round((nogoSuccess / nogoTrials.length) * 100)
         : 0;
 
-    // Calculate reaction time statistics (Go trials only)
-    const goTrials = results.filter(r => r.type === 'GO' && r.correct && (r.reactionTime !== null && r.reactionTime !== undefined));
-    const reactionTimes = goTrials.map(r => r.reactionTime).sort((a, b) => a - b);
+    // Advanced Evaluation Logic: 3-Step Filtering
+    const processedData = useMemo(() => {
+        if (!results || !userInfo) return { median: null, q1: null, q3: null };
 
-    // Median reaction time
-    const medianReactionTime = reactionTimes.length > 0
-        ? Math.round(reactionTimes.length % 2 === 0
-            ? (reactionTimes[reactionTimes.length / 2 - 1] + reactionTimes[reactionTimes.length / 2]) / 2
-            : reactionTimes[Math.floor(reactionTimes.length / 2)])
-        : 0;
+        // 0. Initial Filter: Go trials, correct, valid reaction time
+        let validTrials = results.filter(r => r.type === 'GO' && r.correct && r.reactionTime !== null);
 
-    // Interquartile range (IQR) - Q1 and Q3
-    const q1Index = Math.floor(reactionTimes.length * 0.25);
-    const q3Index = Math.floor(reactionTimes.length * 0.75);
-    const q1 = reactionTimes.length > 0 ? Math.round(reactionTimes[q1Index]) : 0;
-    const q3 = reactionTimes.length > 0 ? Math.round(reactionTimes[q3Index]) : 0;
+        // 1. Anticipatory Response Removal (< 120ms)
+        validTrials = validTrials.filter(r => r.reactionTime >= 120);
+
+        // 2. Age-based Cutoff
+        const age = parseInt(userInfo.age, 10);
+        let cutoff = 1200; // Default (<= 49)
+        if (age >= 70) cutoff = 1800;
+        else if (age >= 50) cutoff = 1500;
+
+        validTrials = validTrials.filter(r => r.reactionTime < cutoff);
+
+        if (validTrials.length === 0) return { median: null, q1: null, q3: null };
+
+        // Helper to calc median/quartiles
+        const calcStats = (trials) => {
+            const sorted = trials.map(r => r.reactionTime).sort((a, b) => a - b);
+            const len = sorted.length;
+            if (len === 0) return { median: null, q1: null, q3: null, iqr: null };
+
+            const median = len % 2 === 0
+                ? (sorted[len / 2 - 1] + sorted[len / 2]) / 2
+                : sorted[Math.floor(len / 2)];
+
+            const q1 = sorted[Math.floor(len * 0.25)];
+            const q3 = sorted[Math.floor(len * 0.75)];
+            const iqr = q3 - q1;
+
+            return { median, q1, q3, iqr };
+        };
+
+        const stats = calcStats(validTrials);
+        if (!stats.median) return { median: null, q1: null, q3: null };
+
+        // 3. Statistical Outlier Removal (Median ± 3*IQR)
+        // Only apply if we have enough data to calculate IQR reasonably? 
+        // Logic requests straight application.
+        const lowerBound = stats.median - (3 * stats.iqr);
+        const upperBound = stats.median + (3 * stats.iqr);
+
+        validTrials = validTrials.filter(r => r.reactionTime >= lowerBound && r.reactionTime <= upperBound);
+
+        // Final Calculation
+        if (validTrials.length === 0) return { median: null, q1: null, q3: null };
+        const finalStats = calcStats(validTrials);
+
+        return {
+            median: finalStats.median ? Math.round(finalStats.median) : null,
+            q1: finalStats.q1 ? Math.round(finalStats.q1) : null,
+            q3: finalStats.q3 ? Math.round(finalStats.q3) : null
+        };
+
+    }, [results, userInfo]);
+
+    const { median: medianReactionTime, q1, q3 } = processedData;
 
     // Demographic Evaluation
     const evaluation = useMemo(() => {
@@ -75,11 +120,13 @@ const ResultsDashboard = ({ results, userInfo, onRestart }) => {
                 <div style={{ padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
                     <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>反応時間</div>
                     <div style={{ fontSize: '3.5rem', fontWeight: 'bold', color: 'var(--accent-go)' }}>
-                        {medianReactionTime}ms
+                        {medianReactionTime ? `${medianReactionTime}ms` : '---'}
                     </div>
-                    <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                        ({q1}-{q3}ms)
-                    </div>
+                    {medianReactionTime && (
+                        <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                            ({q1}-{q3}ms)
+                        </div>
+                    )}
                     <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                         Go刺激への反応
                     </div>

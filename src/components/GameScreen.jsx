@@ -5,7 +5,7 @@ const TOTAL_ROUNDS = 20;
 const MIN_INTERVAL = 1500; // ms
 const MAX_INTERVAL = 3000; // ms
 const GO_PROBABILITY = 0.7; // 70% Go, 30% No-Go
-const NOGO_DISPLAY_TIME = 800; // ms - Time to display No-Go stimulus before moving to next round
+const NOGO_DISPLAY_TIME = 2000; // ms - Global timeout for both Go and No-Go stimuli
 
 // Generate balanced sequence of Go/No-Go stimuli using Fisher-Yates shuffle
 const generateStimulusSequence = (totalRounds, goProbability) => {
